@@ -1,6 +1,8 @@
 package acmecil.project.projima.com.labjuegoparsinghtml;
 
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.koushikdutta.async.future.FutureCallback;
@@ -22,6 +25,7 @@ import org.jsoup.select.Elements;
 import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 import java.util.logging.ConsoleHandler;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
     QuizManager quizManager;
     ArrayAdapter adapter;
     ListView listView;
+    MediaPlayer mediaPlayer;
+    boolean valid;
+    int attemps;
+    TextView m;
 
     /*
     public void DownloadButtonClicked(View view){
@@ -57,6 +65,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         listView = findViewById(R.id.list_view);
         imageView = findViewById(R.id.imageViewContainer);
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.uragirimono);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.start();
+        valid =true;
+        attemps = 0;
+        m = findViewById(R.id.pregunta);
 
         /*
         String html = null;
@@ -67,15 +81,46 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }*/
+
+        m.setText("");
+        imageView.setTranslationY(900);
+        imageView.setAlpha(0f);
+
+
+        imageView.animate().translationY(350).setDuration(7000).alpha(1);
+
+
+
+        final Handler handler = new Handler();
+        final Thread r = new Thread() {
+            public void run() {
+                // DO WORK
+                if(!valid && attemps == 0) {
+                    updateData();
+                    attemps ++;
+                }else{
+                    valid = !valid;
+                }
+                handler.postDelayed(this, 9000);
+            }
+        };
+        r.start();
+
+
+
+
+    }
+
+    private void updateData(){
+        Log.i("HEEHEE","requiem");
         Ion.with(getApplicationContext()).load("https://aminoapps.com/c/anime-es/page/blog/top-10-los-stands-mas-poderosos/bNec_ou8QE0KzE55zo0rx2k27o35gvV").asString().setCallback(new FutureCallback<String>() {
             @Override
             public void onCompleted(Exception e, String result) {
                 htmlText = result;
+                if(!mediaPlayer.isPlaying()) mediaPlayer.start();
                 parseHTML();
             }
         });
-
-
     }
 
     private void parseHTML() {
@@ -113,8 +158,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        imageView.setTranslationY(0);
+        m.setText("¿Cuál es el stand de la imagen?");
         listView.setAdapter(adapter);
     }
+
+
+
+
 
 
 }
